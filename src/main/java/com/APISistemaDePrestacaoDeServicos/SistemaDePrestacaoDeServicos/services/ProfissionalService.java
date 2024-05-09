@@ -1,6 +1,5 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
@@ -9,8 +8,6 @@ import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.reposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +32,7 @@ public class ProfissionalService {
 
         Profissional profissional = new Profissional(profissionalDTO.nome(), profissionalDTO.telefone(),
                 profissionalDTO.endereco(), profissionalDTO.username(), encryptedPassword,
-                profissionalDTO.especialidades(), profissionalDTO.disponibilidade());
+                profissionalDTO.profissoes(), profissionalDTO.especialidades(), profissionalDTO.disponibilidade());
         return profissionalRepository.save(profissional);
     }
 

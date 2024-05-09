@@ -28,22 +28,6 @@ public class Servico {
     }
 
 
-    public String getDescricaoDoServico() {
-        return descricaoDoServico;
-    }
-
-    public void setDescricaoDoServico(String descricaoDoServico) {
-        this.descricaoDoServico = descricaoDoServico;
-    }
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Object getProfissional() {
         return profissional;
