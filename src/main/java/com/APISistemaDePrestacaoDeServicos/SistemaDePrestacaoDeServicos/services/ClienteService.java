@@ -33,6 +33,35 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
+    public Cliente atualizarClienteAutenticado(RegisterClienteDTO clienteDTO) {
+        Cliente clienteAutenticado = getAuthenticatedCliente();
+        if (clienteAutenticado != null) {
+            // Verificar se o nome de usuário está sendo alterado e se já existe
+            if (!clienteAutenticado.getUsername().equals(clienteDTO.username()) &&
+                    clienteRepository.existsByUsername(clienteDTO.username())) {
+                throw new IllegalArgumentException("Nome de usuário já está em uso: " + clienteDTO.username());
+            }
+
+            // Atualizar os dados do cliente
+            clienteAutenticado.setNome(clienteDTO.nome());
+            clienteAutenticado.setTelefone(clienteDTO.telefone());
+            clienteAutenticado.setEndereco(clienteDTO.endereco());
+            // Verificar se o username é o mesmo
+            if (!clienteAutenticado.getUsername().equals(clienteDTO.username())) {
+                clienteAutenticado.setUsername(clienteDTO.username());
+            }
+            // Somente atualiza a senha se uma nova for fornecida
+            if (clienteDTO.password() != null && !clienteDTO.password().isEmpty()) {
+                clienteAutenticado.setPassword(new BCryptPasswordEncoder().encode(clienteDTO.password()));
+            }
+
+            // Salvar as alterações
+            return clienteRepository.save(clienteAutenticado);
+        } else {
+            throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
+        }
+    }
+
     public Cliente buscarPorUsername(String username) {
         return clienteRepository.findByUsername(username);
     }
@@ -41,10 +70,12 @@ public class ClienteService {
         clienteRepository.deleteById(id);
     }
 
+
     public Cliente buscarPorId(Long id) {
         Optional<Cliente> clienteOptional = clienteRepository.findById(id);
         return clienteOptional.orElse(null);
     }
+
 
 
     public List<Cliente> listarTodosClientes() {

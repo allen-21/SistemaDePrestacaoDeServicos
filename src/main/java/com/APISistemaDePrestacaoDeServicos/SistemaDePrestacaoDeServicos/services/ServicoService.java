@@ -1,9 +1,12 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.AvaliacaoResponseDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Avaliacao;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Servico;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.AvaliacaoRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ServicoRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -26,6 +29,10 @@ public class ServicoService {
 
     @Autowired
     private ProfissionalService profissionalService;
+
+    @Autowired
+    private AvaliacaoRepository avaliacaoRepository;
+
 
 
 
@@ -54,9 +61,10 @@ public class ServicoService {
         }
     }
     public List<ServicoDTO> listarServicosDoProfissional(Long idProfissional) {
-        Profissional profissional = profissionalService.buscarPorId(idProfissional);
+        var profissional = profissionalService.buscarPorId(idProfissional);
         if (profissional != null) {
-            return servicoRepository.findByProfissional(profissional).stream()
+            List<Servico> servicos = servicoRepository.findByProfissional(profissional);
+            return servicos.stream()
                     .map(servico -> new ServicoDTO(servico.getId(), servico.getDescricaoDoServico()))
                     .collect(Collectors.toList());
         }
@@ -74,11 +82,48 @@ public class ServicoService {
         return Collections.emptyList();
     }
 
+    public List<AvaliacaoResponseDTO> listarAvaliacoesDoProfissional() {
+        Profissional profissionalAutenticado = profissionalService.getAuthenticatedProfissional();
+        if (profissionalAutenticado != null) {
+            List<Servico> servicosDoProfissional = servicoRepository.findByProfissional(profissionalAutenticado);
+            Set<Servico> servicosSet = new HashSet<>(servicosDoProfissional);
+            List<Avaliacao> avaliacoesDoProfissional = avaliacaoRepository.findByPedido_ServicoIn(servicosSet);
+
+            return avaliacoesDoProfissional.stream()
+                    .map(avaliacao -> new AvaliacaoResponseDTO(
+                            avaliacao.getId(),
+                            avaliacao.getNota(),
+                            avaliacao.getComentario(),
+                            avaliacao.getPedido().getId()
+                    ))
+                    .collect(Collectors.toList());
+        }
+        return null;
+    }
+
+    public List<AvaliacaoResponseDTO> listarAvaliacoesDoServico(Long servicoId) {
+        Servico servico = servicoRepository.findById(servicoId)
+                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId));
+
+        return servico.getPedidos().stream()
+                .flatMap(pedido -> pedido.getAvaliacoes().stream())
+                .map(avaliacao -> new AvaliacaoResponseDTO(
+                        avaliacao.getId(),
+                        avaliacao.getNota(),
+                        avaliacao.getComentario(),
+                        avaliacao.getPedido().getId()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
 
 
     public List<Servico> listarTodosServicos() {
         return servicoRepository.findAll();
     }
+
+
 
 
 }

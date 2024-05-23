@@ -53,20 +53,7 @@ public class ClienteController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @DeleteMapping("/excluir/{id}")
-    public ResponseEntity<Void> excluirClientePorId(@PathVariable Long id) {
-        try {
-            Cliente cliente = clienteService.buscarPorId(id);
-            if (cliente != null) {
-                clienteService.excluirPorId(id);
-                return ResponseEntity.noContent().build();
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+
 
 
 

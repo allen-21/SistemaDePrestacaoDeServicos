@@ -2,7 +2,5 @@ package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.
 
 public enum EstadoPedido {
     PENDENTE,
-    EM_PROGRESSO,
-    CONCLUIDO,
-    CANCELADO
+    FEITO
 }

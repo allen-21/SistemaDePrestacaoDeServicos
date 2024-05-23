@@ -3,7 +3,9 @@ package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.reposit
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Cliente findByUsername(String username);
     void deleteById(Long id);

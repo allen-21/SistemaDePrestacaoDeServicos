@@ -1,5 +1,6 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.controller;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.AvaliacaoResponseDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Servico;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.ProfissionalService;
@@ -59,6 +60,14 @@ public class ServicoController {
         List<Servico> servicos = servicoService.listarTodosServicos();
         return ResponseEntity.ok(servicos);
     }
-
+    @GetMapping("/avaliacoes")
+    public ResponseEntity<List<AvaliacaoResponseDTO>> getAvaliacoesDoProfissional() {
+        List<AvaliacaoResponseDTO> avaliacoes = servicoService.listarAvaliacoesDoProfissional();
+        if (avaliacoes != null && !avaliacoes.isEmpty()) {
+            return ResponseEntity.ok(avaliacoes);
+        } else {
+            return ResponseEntity.noContent().build();
+        }
+    }
 
 }
