@@ -1,7 +1,9 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.controller;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ClienteUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterClienteDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ClienteRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.ClienteService;
 import jakarta.validation.Valid;
@@ -34,6 +36,16 @@ public class ClienteController {
       }
     }
 
+    @PutMapping("/atualizar")
+    public ResponseEntity<String> atualizarCliente(@RequestBody ClienteUpdateDTO clienteDTO) {
+        try {
+            clienteService.atualizarCliente(clienteDTO);
+            return ResponseEntity.ok("Cliente atualizado com sucesso");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o cliente");
+        }
+    }
+
     @GetMapping("/listar")
     public ResponseEntity<List<Cliente>> listarTodosClientes() {
         List<Cliente> clientes = clienteService.listarTodosClientes();
@@ -53,8 +65,21 @@ public class ClienteController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @DeleteMapping("/excluir/{id}")
+    public ResponseEntity<Void> excluirProfissionalPorID(@PathVariable Long id){
+        try {
+            Cliente cliente = clienteService.buscarPorId(id);
+            if (cliente != null) {
+                clienteService.excluirPorId(id);
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
-
+    }
 
 
 }

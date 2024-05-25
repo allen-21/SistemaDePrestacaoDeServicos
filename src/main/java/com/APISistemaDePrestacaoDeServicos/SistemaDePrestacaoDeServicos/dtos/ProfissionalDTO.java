@@ -8,5 +8,5 @@ public record ProfissionalDTO(Long id,
                               String endereco,
                               String username,
                               Profissoes profissoes,
-                              boolean disponibilidade) {
+                              String especialidades, boolean disponibilidade) {
 }

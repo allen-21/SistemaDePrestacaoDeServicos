@@ -1,5 +1,6 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ClienteUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterClienteDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
@@ -33,30 +34,20 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    public Cliente atualizarClienteAutenticado(RegisterClienteDTO clienteDTO) {
+    public void atualizarCliente(ClienteUpdateDTO clienteDTO) {
         Cliente clienteAutenticado = getAuthenticatedCliente();
         if (clienteAutenticado != null) {
-            // Verificar se o nome de usuário está sendo alterado e se já existe
-            if (!clienteAutenticado.getUsername().equals(clienteDTO.username()) &&
-                    clienteRepository.existsByUsername(clienteDTO.username())) {
-                throw new IllegalArgumentException("Nome de usuário já está em uso: " + clienteDTO.username());
-            }
-
-            // Atualizar os dados do cliente
             clienteAutenticado.setNome(clienteDTO.nome());
             clienteAutenticado.setTelefone(clienteDTO.telefone());
             clienteAutenticado.setEndereco(clienteDTO.endereco());
-            // Verificar se o username é o mesmo
-            if (!clienteAutenticado.getUsername().equals(clienteDTO.username())) {
-                clienteAutenticado.setUsername(clienteDTO.username());
-            }
-            // Somente atualiza a senha se uma nova for fornecida
-            if (clienteDTO.password() != null && !clienteDTO.password().isEmpty()) {
+
+            // Atualizar a senha se uma nova senha for fornecida
+            if (clienteDTO != null && clienteDTO.password() != null && !clienteDTO.password().isEmpty()) {
                 clienteAutenticado.setPassword(new BCryptPasswordEncoder().encode(clienteDTO.password()));
             }
 
             // Salvar as alterações
-            return clienteRepository.save(clienteAutenticado);
+            clienteRepository.save(clienteAutenticado);
         } else {
             throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
         }
@@ -81,6 +72,7 @@ public class ClienteService {
     public List<Cliente> listarTodosClientes() {
         return clienteRepository.findAll();
     }
+
 
     public Cliente getAuthenticatedCliente() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -30,7 +30,7 @@ public class PedidoController {
         }
     }
 
-    @PutMapping("/{pedidoId}/status")
+    @PutMapping("/status/{pedidoId}")
     public ResponseEntity<Pedido> atualizarStatusPedido(@PathVariable Long pedidoId, @RequestBody Map<String, String> request) {
         try {
             String novoStatus = request.get("novoStatus");
@@ -65,7 +65,7 @@ public class PedidoController {
         }
     }
 
-    @GetMapping("/{pedidoId}/avaliacao")
+    @GetMapping("/avaliacao/{pedidoId}")
     public ResponseEntity<Boolean> clienteAutenticadoAvaliarPedido(@PathVariable Long pedidoId) {
         try {
             boolean podeAvaliar = pedidoService.clienteAutenticadoAvaliarPedido(pedidoId);

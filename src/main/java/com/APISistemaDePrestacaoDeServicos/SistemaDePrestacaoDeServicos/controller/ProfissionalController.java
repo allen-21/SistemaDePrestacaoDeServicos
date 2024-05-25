@@ -1,8 +1,10 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.controller;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterProfissionalDTO;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.Profissoes;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ProfissionalRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.ProfissionalService;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.ServicoService;
@@ -10,10 +12,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/profissional")
@@ -40,11 +45,15 @@ public class ProfissionalController {
 
     }
 
-    /*@GetMapping("/listar")
-    public List<ProfResponse> listar(){
-        List<ProfResponse> profList = profissionalRepository.findAll().stream().map(ProfResponse::new).toList();
-        return profList;
-    }*/
+    @PutMapping("/atualizar")
+    public ResponseEntity<String> atualizarProfissionalAutenticado(@RequestBody ProfissionalUpdateDTO profissionalDTO) {
+        try {
+            profissionalService.atualizarProfissionalAutenticado(profissionalDTO);
+            return ResponseEntity.ok("Profissional atualizado com sucesso");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o profissional");
+        }
+    }
 
     @GetMapping("/buscar/{username}")
     public ResponseEntity<?> buscarPorUsername(@PathVariable String username) {
@@ -59,6 +68,43 @@ public class ProfissionalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+    @GetMapping("/profissao/{profissao}")
+    public ResponseEntity<List<ProfissionalDTO>> listarProfissionaisPorProfissao(@PathVariable Profissoes profissao) {
+        List<ProfissionalDTO> profissionais = profissionalService.listarProfissionaisPorProfissao(profissao);
+        return ResponseEntity.ok(profissionais);
+    }
+    @GetMapping("/detalhes")
+    public ResponseEntity<ProfissionalDTO> getInformacoesProfissionalAutenticado() {
+        ProfissionalDTO profissionalDTO = profissionalService.detalhesProfissionalAutenticado();
+        return ResponseEntity.ok(profissionalDTO);
+    }
+    @PatchMapping("/disponibilidade")
+    public ResponseEntity<?> atualizarDisponibilidadeProfissional(@RequestBody Map<String, Boolean> requestBody) {
+        // Obtém o nome de usuário do profissional autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // Busca o profissional pelo nome de usuário
+        Profissional profissional = profissionalService.buscarPorUsername(username);
+
+        // Verifica se o profissional foi encontrado
+        if (profissional == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profissional não encontrado");
+        }
+
+        // Obtém a nova disponibilidade do corpo da solicitação
+        Boolean novaDisponibilidade = requestBody.get("novaDisponibilidade");
+
+        // Verifica se a novaDisponibilidade é nula
+        if (novaDisponibilidade == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Parâmetro 'novaDisponibilidade' ausente ou inválido");
+        }
+
+        // Atualiza a disponibilidade do profissional
+        profissionalService.atualizarDisponibilidade(profissional.getId(), novaDisponibilidade);
+
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping("/excluir/{id}")
     public ResponseEntity<Void> excluirProfissionalPorID(@PathVariable Long id){
@@ -75,13 +121,5 @@ public class ProfissionalController {
         }
 
     }
-    @GetMapping("/{id}/servicos")
-    public ResponseEntity<List<ServicoDTO>> buscarServicosDoProfissional(@PathVariable("id") Long id) {
-        List<ServicoDTO> servicos = profissionalService.buscarServicosDoProfissional(id);
-        return ResponseEntity.ok(servicos);
-    }
-
-
-
 
 }

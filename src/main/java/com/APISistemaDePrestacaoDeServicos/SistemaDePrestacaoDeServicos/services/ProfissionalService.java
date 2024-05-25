@@ -1,9 +1,11 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.Profissoes;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ProfissionalRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ServicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,33 +39,24 @@ public class ProfissionalService {
                 profissionalDTO.profissoes(), profissionalDTO.especialidades(), profissionalDTO.disponibilidade());
         return profissionalRepository.save(profissional);
     }
-    public Profissional atualizarProfissionalAutenticado(RegisterProfissionalDTO profissionalDTO) {
+    public void atualizarProfissionalAutenticado(ProfissionalUpdateDTO profissionalDTO) {
         Profissional profissionalAutenticado = getAuthenticatedProfissional();
         if (profissionalAutenticado != null) {
-            // Verificar se o nome de usuário está sendo alterado e se já existe
-            if (!profissionalAutenticado.getUsername().equals(profissionalDTO.username()) &&
-                    verificarExistenciaUsername(profissionalDTO.username())) {
-                throw new IllegalArgumentException("Já existe um profissional com o nome de usuário: " + profissionalDTO.username());
-            }
-
-            // Atualizar os dados do profissional
             profissionalAutenticado.setNome(profissionalDTO.nome());
             profissionalAutenticado.setTelefone(profissionalDTO.telefone());
             profissionalAutenticado.setEndereco(profissionalDTO.endereco());
-            // Verificar se o username é o mesmo
-            if (!profissionalAutenticado.getUsername().equals(profissionalDTO.username())) {
-                profissionalAutenticado.setUsername(profissionalDTO.username());
-            }
-            // Somente atualiza a senha se uma nova for fornecida
-            if (profissionalDTO.password() != null && !profissionalDTO.password().isEmpty()) {
-                profissionalAutenticado.setPassword(new BCryptPasswordEncoder().encode(profissionalDTO.password()));
-            }
             profissionalAutenticado.setProfissoes(profissionalDTO.profissoes());
             profissionalAutenticado.setEspecialidades(profissionalDTO.especialidades());
             profissionalAutenticado.setDisponibilidade(profissionalDTO.disponibilidade());
 
+            // Atualizar a senha se uma nova senha for fornecida
+            if (profissionalDTO != null && !profissionalDTO.password().isEmpty()) {
+                profissionalAutenticado.setPassword(new BCryptPasswordEncoder().encode(profissionalDTO.password()));
+            }
+
             // Salvar as alterações
-            return profissionalRepository.save(profissionalAutenticado);
+            profissionalRepository.save(profissionalAutenticado);
+
         } else {
             throw new IllegalStateException("Nenhum profissional autenticado encontrado.");
         }
@@ -86,6 +80,23 @@ public class ProfissionalService {
         Optional<Profissional> profissional = profissionalRepository.findById(id);
         return profissional.orElse(null);
     }
+    public ProfissionalDTO detalhesProfissionalAutenticado() {
+        Profissional profissional = getAuthenticatedProfissional();
+        if (profissional != null) {
+            return new ProfissionalDTO(
+                    profissional.getId(),
+                    profissional.getNome(),
+                    profissional.getTelefone(),
+                    profissional.getEndereco(),
+                    profissional.getUsername(),
+                    profissional.getProfissoes(),
+                    profissional.getEspecialidades(),
+                    profissional.getDisponibilidade()
+            );
+        } else {
+            throw new RuntimeException("Nenhum profissional autenticado encontrado");
+        }
+    }
 
     public List<ServicoDTO> buscarServicosDoProfissional(Long id) {
         Profissional profissional = profissionalRepository.findById(id)
@@ -95,6 +106,35 @@ public class ProfissionalService {
                 .map(servico -> new ServicoDTO(servico.getId(), servico.getDescricaoDoServico()))
                 .collect(Collectors.toList());
     }
+    public List<ProfissionalDTO> listarProfissionaisPorProfissao(Profissoes profissoes) {
+        List<Profissional> profissionais = profissionalRepository.findByProfissoes(profissoes);
+        return profissionais.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    private ProfissionalDTO convertToDTO(Profissional profissional) {
+        return new ProfissionalDTO(
+                profissional.getId(),
+                profissional.getNome(),
+                profissional.getTelefone(),
+                profissional.getEndereco(),
+                profissional.getUsername(),
+                profissional.getProfissoes(),
+                profissional.getEspecialidades(), profissional.getDisponibilidade()
+        );
+    }
+    public void atualizarDisponibilidade(Long idProfissional, boolean novaDisponibilidade) {
+        // Verificar se o profissional existe
+        Profissional profissional = profissionalRepository.findById(idProfissional)
+                .orElseThrow(() -> new RuntimeException("Profissional não encontrado com o ID: " + idProfissional));
+
+        // Atualizar a disponibilidade
+        profissional.setDisponibilidade(novaDisponibilidade);
+
+        // Salvar as mudanças no banco de dados
+        profissionalRepository.save(profissional);
+    }
+
     public Profissional getAuthenticatedProfissional() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof Profissional) {

@@ -3,6 +3,7 @@ package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.control
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.AvaliacaoResponseDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Servico;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ServicoRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.ProfissionalService;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.ServicoService;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.UserService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/servicos")
@@ -24,7 +26,7 @@ public class ServicoController {
     private ServicoService servicoService;
 
     @Autowired
-    private UserService userService;
+    private ServicoRepository servicoRepository;
 
     @PostMapping("/adicionar")
     public ResponseEntity<Servico> adicionarServico(@RequestBody ServicoDTO servicoDTO) {
@@ -59,6 +61,18 @@ public class ServicoController {
     public ResponseEntity<List<Servico>> listarTodosServicos() {
         List<Servico> servicos = servicoService.listarTodosServicos();
         return ResponseEntity.ok(servicos);
+    }
+    @GetMapping("/lista/{idProfissional}")
+    public ResponseEntity<List<ServicoDTO>> listarServicosDoProfissional(@PathVariable Long idProfissional) {
+        var profissional = profissionalService.buscarPorId(idProfissional);
+        if (profissional != null) {
+            List<Servico> servicos = servicoRepository.findByProfissional(profissional);
+            List<ServicoDTO> servicosDTO = servicos.stream()
+                    .map(servico -> new ServicoDTO(servico.getId(), servico.getDescricaoDoServico()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(servicosDTO);
+        }
+        return ResponseEntity.notFound().build();
     }
     @GetMapping("/avaliacoes")
     public ResponseEntity<List<AvaliacaoResponseDTO>> getAvaliacoesDoProfissional() {
