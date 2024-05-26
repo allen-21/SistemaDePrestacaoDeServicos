@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
-import lombok.AllArgsConstructor;
+
 import lombok.Getter;
 
 import lombok.NoArgsConstructor;
@@ -41,11 +41,16 @@ public class Pedido {
     @JsonManagedReference
     private List<Avaliacao> avaliacoes;
 
+    public Profissional getProfissional() {
+        return (Profissional) this.servico.getProfissional();
+    }
+
     public Pedido(Servico servico, Cliente cliente, String descricao, EstadoPedido status) {
         this.servico = servico;
         this.cliente = cliente;
         this.descricao = descricao;
         this.status = EstadoPedido.PENDENTE;
     }
+
 
 }

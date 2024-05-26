@@ -1,10 +1,12 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.controller;
 
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.PedidoDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.PedidoProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Pedido;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.EstadoPedido;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,16 +21,17 @@ public class PedidoController {
     private PedidoService pedidoService;
 
     @PostMapping("/enviar")
-    public ResponseEntity<Pedido> fazerPedido(@RequestBody PedidoDTO pedidoDTO) {
+    public ResponseEntity<String> fazerPedido(@RequestBody PedidoDTO pedidoDTO) {
         try {
             Pedido pedido = pedidoService.fazerPedido(pedidoDTO);
-            return ResponseEntity.ok(pedido);
+            return ResponseEntity.ok("Pedido realizado com sucesso!");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Erro: Pedido inválido.");
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Erro: Operação não autorizada.");
         }
     }
+
 
     @PutMapping("/status/{pedidoId}")
     public ResponseEntity<String> atualizarStatusPedido(@PathVariable Long pedidoId, @RequestBody Map<String, String> request) {
@@ -57,12 +60,12 @@ public class PedidoController {
     }
 
     @GetMapping("/cliente")
-    public ResponseEntity<List<Pedido>> listarPedidosDoClienteAutenticado() {
+    public ResponseEntity<List<PedidoProfissionalDTO>> listarPedidosDoClienteAutenticado() {
         try {
-            List<Pedido> pedidos = pedidoService.listarPedidosDoClienteAutenticado();
-            return ResponseEntity.ok(pedidos);
+            List<PedidoProfissionalDTO> pedidosDTO = pedidoService.listarPedidosDoClienteAutenticado();
+            return ResponseEntity.ok(pedidosDTO);
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.PedidoDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.PedidoProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Pedido;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
@@ -11,6 +12,7 @@ import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.reposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -63,14 +65,29 @@ public class PedidoService {
         }
     }
 
-    public List<Pedido> listarPedidosDoClienteAutenticado() {
+    public List<PedidoProfissionalDTO> listarPedidosDoClienteAutenticado() {
         Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
         if (clienteAutenticado != null) {
-            return pedidoRepository.findByCliente(clienteAutenticado);
+            List<Pedido> pedidos = pedidoRepository.findByCliente(clienteAutenticado);
+            List<PedidoProfissionalDTO> pedidosDTO = new ArrayList<>();
+            for (Pedido pedido : pedidos) {
+                Profissional profissional = (Profissional) pedido.getServico().getProfissional();
+                PedidoProfissionalDTO pedidoDTO = new PedidoProfissionalDTO(
+                        pedido.getId(),
+                        profissional.getId(),
+                        profissional.getNome(),
+                        profissional.getTelefone(),
+                        pedido.getDescricao(),
+                        pedido.getStatus()
+                );
+                pedidosDTO.add(pedidoDTO);
+            }
+            return pedidosDTO;
         } else {
             throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
         }
     }
+
 
     public boolean clienteAutenticadoAvaliarPedido(Long pedidoId) {
         Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
