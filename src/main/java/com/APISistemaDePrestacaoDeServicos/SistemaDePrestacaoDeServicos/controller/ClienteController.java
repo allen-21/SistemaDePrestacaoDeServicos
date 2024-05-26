@@ -1,6 +1,8 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.controller;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ClienteDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ClienteUpdateDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterClienteDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
@@ -44,6 +46,12 @@ public class ClienteController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao atualizar o cliente");
         }
+    }
+
+    @GetMapping("/detalhes")
+    public ResponseEntity<ClienteDTO> getInformacoesClienteAutenticado() {
+        ClienteDTO clienteDTO = clienteService.detalhesClienteAutenticado();
+        return ResponseEntity.ok(clienteDTO);
     }
 
     @GetMapping("/listar")

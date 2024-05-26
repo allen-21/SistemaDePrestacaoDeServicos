@@ -31,18 +31,19 @@ public class PedidoController {
     }
 
     @PutMapping("/status/{pedidoId}")
-    public ResponseEntity<Pedido> atualizarStatusPedido(@PathVariable Long pedidoId, @RequestBody Map<String, String> request) {
+    public ResponseEntity<String> atualizarStatusPedido(@PathVariable Long pedidoId, @RequestBody Map<String, String> request) {
         try {
             String novoStatus = request.get("novoStatus");
             EstadoPedido status = EstadoPedido.valueOf(novoStatus);
-            Pedido pedido = pedidoService.atualizarStatusPedido(pedidoId, status);
-            return ResponseEntity.ok(pedido);
+            pedidoService.atualizarStatusPedido(pedidoId, status);
+            return ResponseEntity.ok("Status do pedido atualizado com sucesso.");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body("Erro: Status inválido.");
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).body("Erro: Não autorizado.");
         }
     }
+
 
 
     @GetMapping("/profissional")

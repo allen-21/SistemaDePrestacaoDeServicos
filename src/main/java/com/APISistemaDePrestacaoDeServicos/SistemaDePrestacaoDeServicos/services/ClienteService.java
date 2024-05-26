@@ -1,17 +1,15 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ClienteDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ClienteUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterClienteDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ClienteRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,13 +38,9 @@ public class ClienteService {
             clienteAutenticado.setNome(clienteDTO.nome());
             clienteAutenticado.setTelefone(clienteDTO.telefone());
             clienteAutenticado.setEndereco(clienteDTO.endereco());
-
-            // Atualizar a senha se uma nova senha for fornecida
             if (clienteDTO != null && clienteDTO.password() != null && !clienteDTO.password().isEmpty()) {
                 clienteAutenticado.setPassword(new BCryptPasswordEncoder().encode(clienteDTO.password()));
             }
-
-            // Salvar as alterações
             clienteRepository.save(clienteAutenticado);
         } else {
             throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
@@ -67,10 +61,22 @@ public class ClienteService {
         return clienteOptional.orElse(null);
     }
 
-
-
     public List<Cliente> listarTodosClientes() {
         return clienteRepository.findAll();
+    }
+    public ClienteDTO detalhesClienteAutenticado() {
+        Cliente cliente = getAuthenticatedCliente();
+        if (cliente != null) {
+            return new ClienteDTO(
+                    cliente.getId(),
+                    cliente.getNome(),
+                    cliente.getTelefone(),
+                    cliente.getEndereco(),
+                    cliente.getUsername()
+            );
+        } else {
+            throw new RuntimeException("Nenhum Cliente autenticado encontrado");
+        }
     }
 
 
