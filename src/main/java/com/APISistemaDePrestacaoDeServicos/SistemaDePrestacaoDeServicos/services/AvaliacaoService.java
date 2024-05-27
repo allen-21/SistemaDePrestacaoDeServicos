@@ -1,9 +1,6 @@
 package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.services;
 
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Avaliacao;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Pedido;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Servico;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.*;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.EstadoPedido;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.AvaliacaoRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.PedidoRepository;
@@ -11,7 +8,9 @@ import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.reposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +53,29 @@ public class AvaliacaoService {
                 .collect(Collectors.toList());
         return pedidos.stream()
                 .map(pedido -> pedido.getAvaliacoes())
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+
+
+    public List<Avaliacao> listarAvaliacoesPorServico(Long servicoId) {
+        // Buscar o serviço pelo ID
+        Optional<Servico> servicoOptional = servicoRepository.findById(servicoId);
+
+        if (!servicoOptional.isPresent()) {
+            // Caso o serviço não exista, retornar uma lista vazia ou lançar uma exceção, dependendo do seu caso de uso
+            return Collections.emptyList();
+        }
+
+        // Obter o serviço
+        Servico servico = servicoOptional.get();
+
+        // Obter os pedidos associados ao serviço
+        List<Pedido> pedidos = servico.getPedidos();
+
+        // Coletar e retornar as avaliações dos pedidos
+        return pedidos.stream()
+                .map(Pedido::getAvaliacoes)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
     }

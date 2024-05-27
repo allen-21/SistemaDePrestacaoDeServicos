@@ -3,6 +3,7 @@ package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.control
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterProfissionalDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Avaliacao;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.Profissoes;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ProfissionalRepository;
@@ -120,6 +121,15 @@ public class ProfissionalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+
+    @GetMapping("/usuarioAutenticado")
+    public ResponseEntity<List<Avaliacao>> listarAvaliacoesDoUsuarioAutenticado() {
+        List<Avaliacao> avaliacoes = profissionalService.listarAvaliacoesDoUsuarioAutenticado();
+        if (avaliacoes.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(avaliacoes);
     }
 
 }

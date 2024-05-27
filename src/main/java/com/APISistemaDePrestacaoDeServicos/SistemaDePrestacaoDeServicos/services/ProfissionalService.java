@@ -4,7 +4,10 @@ import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.Pro
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ProfissionalUpdateDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.RegisterProfissionalDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.ServicoDTO;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Avaliacao;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Pedido;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Servico;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.Profissoes;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ProfissionalRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ServicoRepository;
@@ -14,6 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import java.util.Optional;
@@ -124,15 +129,38 @@ public class ProfissionalService {
         );
     }
     public void atualizarDisponibilidade(Long idProfissional, boolean novaDisponibilidade) {
-        // Verificar se o profissional existe
         Profissional profissional = profissionalRepository.findById(idProfissional)
                 .orElseThrow(() -> new RuntimeException("Profissional não encontrado com o ID: " + idProfissional));
 
-        // Atualizar a disponibilidade
         profissional.setDisponibilidade(novaDisponibilidade);
 
-        // Salvar as mudanças no banco de dados
         profissionalRepository.save(profissional);
+    }
+
+    public List<Avaliacao> listarAvaliacoesDoUsuarioAutenticado() {
+        // Obter o profissional autenticado
+        Profissional profissional = getAuthenticatedProfissional();
+        if (profissional == null) {
+            // Se o profissional não estiver autenticado, retornar uma lista vazia ou lançar uma exceção, dependendo do seu caso de uso
+            return Collections.emptyList();
+        }
+
+        // Buscar os serviços do profissional autenticado
+        List<Servico> servicos = servicoRepository.findByProfissionalId(profissional.getId());
+
+        // Mapear cada serviço para uma String contendo a descrição do serviço e retornar como lista
+        List<String> descricoesServicos = servicos.stream()
+                .map(Servico::getDescricaoDoServico)
+                .collect(Collectors.toList());
+
+        List<Pedido> pedidos = servicos.stream()
+                .map(Servico::getPedidos)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+        return pedidos.stream()
+                .map(Pedido::getAvaliacoes)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     public Profissional getAuthenticatedProfissional() {
