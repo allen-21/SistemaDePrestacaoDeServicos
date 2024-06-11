@@ -22,4 +22,8 @@ public class Avaliacao {
     @JoinColumn(name = "pedido_id")
     @JsonBackReference
     private Pedido pedido;
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 }

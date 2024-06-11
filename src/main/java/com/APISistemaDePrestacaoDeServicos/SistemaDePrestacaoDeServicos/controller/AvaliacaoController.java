@@ -28,19 +28,15 @@ public class AvaliacaoController {
     private ServicoService servicoService;
 
     @PostMapping("/avaliar")
-    public ResponseEntity<AvaliacaoResponseDTO> avaliarServico(@RequestBody AvaliacaoDTO avaliacaoDTO) {
-        Avaliacao avaliacao = avaliacaoService.avaliarServico(
-                avaliacaoDTO.pedidoId(),
-                avaliacaoDTO.nota(),
-                avaliacaoDTO.comentario()
-        );
-        AvaliacaoResponseDTO responseDTO = new AvaliacaoResponseDTO(
-                avaliacao.getId(),
-                avaliacao.getNota(),
-                avaliacao.getComentario(),
-                avaliacao.getPedido().getId()
-        );
-        return ResponseEntity.ok(responseDTO);
+    public ResponseEntity<String> avaliarServico(@RequestBody AvaliacaoDTO avaliacaoDTO) {
+        try {
+            Avaliacao avaliacao = avaliacaoService.avaliarServico(avaliacaoDTO.pedidoId(), avaliacaoDTO.nota(), avaliacaoDTO.comentario());
+            return ResponseEntity.ok("Avaliação realizada com sucesso!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: Pedido inválido.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(403).body("Erro: " + e.getMessage());
+        }
     }
 
     @GetMapping("/profissional/{profissionalId}")

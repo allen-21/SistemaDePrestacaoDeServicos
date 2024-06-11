@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -23,6 +24,7 @@ public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
     @JoinColumn(name = "servico_id")
     @JsonBackReference
@@ -41,16 +43,16 @@ public class Pedido {
     @JsonManagedReference
     private List<Avaliacao> avaliacoes;
 
+    private LocalDateTime dataHora;
     public Profissional getProfissional() {
         return (Profissional) this.servico.getProfissional();
     }
 
-    public Pedido(Servico servico, Cliente cliente, String descricao, EstadoPedido status) {
+    public Pedido(Servico servico, Cliente cliente, String descricao, EstadoPedido status, LocalDateTime dataHora) {
         this.servico = servico;
         this.cliente = cliente;
         this.descricao = descricao;
-        this.status = EstadoPedido.PENDENTE;
+        this.status = status;
+        this.dataHora = dataHora;
     }
-
-
 }

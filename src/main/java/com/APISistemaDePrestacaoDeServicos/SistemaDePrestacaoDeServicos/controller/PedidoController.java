@@ -76,6 +76,17 @@ public class PedidoController {
             return ResponseEntity.ok(podeAvaliar);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(false);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(403).body(false);
+        }
+    }
+    @GetMapping("/naoavaliados")
+    public ResponseEntity<List<Pedido>> listarPedidosNaoAvaliadosDoClienteAutenticado() {
+        try {
+            List<Pedido> pedidosNaoAvaliados = pedidoService.listarPedidosNaoAvaliadosDoClienteAutenticado();
+            return ResponseEntity.ok(pedidosNaoAvaliados);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(403).body(null);
         }
     }
 }

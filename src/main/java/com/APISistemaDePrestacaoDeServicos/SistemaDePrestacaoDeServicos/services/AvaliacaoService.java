@@ -38,8 +38,15 @@ public class AvaliacaoService {
             throw new IllegalStateException("O pedido não está no estado 'feito'.");
         }
 
+
+        Optional<Avaliacao> avaliacaoExistente = avaliacaoRepository.findByPedidoAndCliente(pedido, clienteAutenticado);
+        if (avaliacaoExistente.isPresent()) {
+            throw new IllegalStateException("O cliente já avaliou este pedido.");
+        }
+
         Avaliacao avaliacao = new Avaliacao();
         avaliacao.setPedido(pedido);
+        avaliacao.setCliente(clienteAutenticado);
         avaliacao.setNota(nota);
         avaliacao.setComentario(comentario);
         return avaliacaoRepository.save(avaliacao);

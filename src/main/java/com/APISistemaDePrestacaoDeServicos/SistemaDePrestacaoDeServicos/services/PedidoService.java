@@ -2,18 +2,19 @@ package com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.service
 
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.PedidoDTO;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.dtos.PedidoProfissionalDTO;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Cliente;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Pedido;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Profissional;
-import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.Servico;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.*;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.models.enums.EstadoPedido;
+import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.AvaliacaoRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.PedidoRepository;
 import com.APISistemaDePrestacaoDeServicos.SistemaDePrestacaoDeServicos.repositories.ServicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -24,6 +25,8 @@ public class PedidoService {
 
     @Autowired
     private ServicoRepository servicoRepository;
+    @Autowired
+    private AvaliacaoRepository avaliacaoRepository;
 
     @Autowired
     private ClienteService clienteService;
@@ -36,7 +39,13 @@ public class PedidoService {
         if (clienteAutenticado != null) {
             Servico servico = servicoRepository.findById(pedidoDTO.servicoId())
                     .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
-            Pedido novoPedido = new Pedido(servico, clienteAutenticado, pedidoDTO.descricao(), pedidoDTO.status());
+
+            LocalDateTime dataHora = pedidoDTO.dataHora().withSecond(0).withNano(0);  // Remove segundos e nanos
+            if (dataHora == null || dataHora.isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Data e hora inválidas.");
+            }
+
+            Pedido novoPedido = new Pedido(servico, clienteAutenticado, pedidoDTO.descricao(), pedidoDTO.status(), dataHora);
             return pedidoRepository.save(novoPedido);
         } else {
             throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
@@ -88,15 +97,34 @@ public class PedidoService {
         }
     }
 
+    public List<Pedido> listarPedidosNaoAvaliadosDoClienteAutenticado() {
+        Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
+        if (clienteAutenticado != null) {
+            List<Pedido> pedidos = pedidoRepository.findByCliente(clienteAutenticado);
+            List<Pedido> pedidosNaoAvaliados = new ArrayList<>();
+            for (Pedido pedido : pedidos) {
+                if (!avaliacaoRepository.findByPedidoAndCliente(pedido, clienteAutenticado).isPresent()) {
+                    pedidosNaoAvaliados.add(pedido);
+                }
+            }
+            return pedidosNaoAvaliados;
+        } else {
+            throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
+        }
+    }
 
     public boolean clienteAutenticadoAvaliarPedido(Long pedidoId) {
         Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
         if (clienteAutenticado != null) {
             Pedido pedido = pedidoRepository.findById(pedidoId)
                     .orElseThrow(() -> new IllegalArgumentException("Pedido não encontrado"));
-            return pedido.getStatus().equals(EstadoPedido.FEITO);
+            if (!pedido.getStatus().equals(EstadoPedido.FEITO)) {
+                throw new IllegalStateException("O pedido não está no estado 'feito'.");
+            }
+            Optional<Avaliacao> avaliacaoExistente = avaliacaoRepository.findByPedidoAndCliente(pedido, clienteAutenticado);
+            return avaliacaoExistente.isEmpty();
         } else {
-            return false;
+            throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
         }
     }
 }
