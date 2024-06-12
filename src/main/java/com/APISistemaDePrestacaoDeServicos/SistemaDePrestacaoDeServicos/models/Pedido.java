@@ -44,6 +44,7 @@ public class Pedido {
     private List<Avaliacao> avaliacoes;
 
     private LocalDateTime dataHora;
+
     public Profissional getProfissional() {
         return (Profissional) this.servico.getProfissional();
     }
@@ -54,5 +55,9 @@ public class Pedido {
         this.descricao = descricao;
         this.status = status;
         this.dataHora = dataHora;
+    }
+
+    public boolean foiAvaliado() {
+        return !avaliacoes.isEmpty();
     }
 }

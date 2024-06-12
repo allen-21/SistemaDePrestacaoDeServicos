@@ -56,20 +56,6 @@ public class ProfissionalController {
         }
     }
 
-    @GetMapping("/buscar/{username}")
-    public ResponseEntity<?> buscarPorUsername(@PathVariable String username) {
-        try {
-            Profissional profissional = profissionalService.buscarPorUsername(username);
-            if (profissional != null) {
-                return ResponseEntity.ok().body(profissional);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profissional não encontrado com o nome de usuário: " + username);
-            }
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-    }
     @GetMapping("/profissao/{profissao}")
     public ResponseEntity<List<ProfissionalDTO>> listarProfissionaisPorProfissao(@PathVariable Profissoes profissao) {
         List<ProfissionalDTO> profissionais = profissionalService.listarProfissionaisPorProfissao(profissao);
@@ -79,6 +65,12 @@ public class ProfissionalController {
     public ResponseEntity<ProfissionalDTO> getInformacoesProfissionalAutenticado() {
         ProfissionalDTO profissionalDTO = profissionalService.detalhesProfissionalAutenticado();
         return ResponseEntity.ok(profissionalDTO);
+    }
+
+    @GetMapping("/buscar/{termo}")
+    public ResponseEntity<List<Profissional>> buscarProfissionaisPorNomeOuProfissao(@PathVariable String termo) {
+        List<Profissional> profissionais = profissionalService.buscarProfissionaisPorNomeOuProfissao(termo);
+        return ResponseEntity.ok(profissionais);
     }
     @PatchMapping("/disponibilidade")
     public ResponseEntity<?> atualizarDisponibilidadeProfissional(@RequestBody Map<String, Boolean> requestBody) {
@@ -131,5 +123,6 @@ public class ProfissionalController {
         }
         return ResponseEntity.ok(avaliacoes);
     }
+
 
 }

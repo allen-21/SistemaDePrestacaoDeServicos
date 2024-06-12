@@ -68,28 +68,40 @@ public class PedidoService {
     public List<Pedido> listarPedidosPorProfissional() {
         Profissional profissionalAutenticado = profissionalService.getAuthenticatedProfissional();
         if (profissionalAutenticado != null) {
-            return pedidoRepository.findByServico_Profissional(profissionalAutenticado);
+            List<Pedido> pedidos = pedidoRepository.findByServico_Profissional(profissionalAutenticado);
+            List<Pedido> pedidosNaoAvaliados = new ArrayList<>();
+            for (Pedido pedido : pedidos) {
+                // Verificar se o pedido foi avaliado
+                if (!pedido.foiAvaliado()) {
+                    pedidosNaoAvaliados.add(pedido);
+                }
+            }
+            return pedidosNaoAvaliados;
         } else {
             throw new IllegalStateException("Nenhum profissional autenticado encontrado.");
         }
     }
 
-    public List<PedidoProfissionalDTO> listarPedidosDoClienteAutenticado() {
+
+    public List<PedidoProfissionalDTO> listarPedidosNaoAvaliadosDoClienteAutenticado() {
         Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
         if (clienteAutenticado != null) {
             List<Pedido> pedidos = pedidoRepository.findByCliente(clienteAutenticado);
             List<PedidoProfissionalDTO> pedidosDTO = new ArrayList<>();
             for (Pedido pedido : pedidos) {
-                Profissional profissional = (Profissional) pedido.getServico().getProfissional();
-                PedidoProfissionalDTO pedidoDTO = new PedidoProfissionalDTO(
-                        pedido.getId(),
-                        profissional.getId(),
-                        profissional.getNome(),
-                        profissional.getTelefone(),
-                        pedido.getDescricao(),
-                        pedido.getStatus()
-                );
-                pedidosDTO.add(pedidoDTO);
+                // Verificar se o pedido foi avaliado
+                if (!pedido.foiAvaliado()) {
+                    Profissional profissional = (Profissional) pedido.getServico().getProfissional();
+                    PedidoProfissionalDTO pedidoDTO = new PedidoProfissionalDTO(
+                            pedido.getId(),
+                            profissional.getId(),
+                            profissional.getNome(),
+                            profissional.getTelefone(),
+                            pedido.getDescricao(),
+                            pedido.getStatus()
+                    );
+                    pedidosDTO.add(pedidoDTO);
+                }
             }
             return pedidosDTO;
         } else {
@@ -97,21 +109,7 @@ public class PedidoService {
         }
     }
 
-    public List<Pedido> listarPedidosNaoAvaliadosDoClienteAutenticado() {
-        Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
-        if (clienteAutenticado != null) {
-            List<Pedido> pedidos = pedidoRepository.findByCliente(clienteAutenticado);
-            List<Pedido> pedidosNaoAvaliados = new ArrayList<>();
-            for (Pedido pedido : pedidos) {
-                if (!avaliacaoRepository.findByPedidoAndCliente(pedido, clienteAutenticado).isPresent()) {
-                    pedidosNaoAvaliados.add(pedido);
-                }
-            }
-            return pedidosNaoAvaliados;
-        } else {
-            throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
-        }
-    }
+
 
     public boolean clienteAutenticadoAvaliarPedido(Long pedidoId) {
         Cliente clienteAutenticado = clienteService.getAuthenticatedCliente();
@@ -127,4 +125,6 @@ public class PedidoService {
             throw new IllegalStateException("Nenhum cliente autenticado encontrado.");
         }
     }
+
+
 }

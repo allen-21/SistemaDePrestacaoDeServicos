@@ -62,7 +62,7 @@ public class PedidoController {
     @GetMapping("/cliente")
     public ResponseEntity<List<PedidoProfissionalDTO>> listarPedidosDoClienteAutenticado() {
         try {
-            List<PedidoProfissionalDTO> pedidosDTO = pedidoService.listarPedidosDoClienteAutenticado();
+            List<PedidoProfissionalDTO> pedidosDTO = pedidoService.listarPedidosNaoAvaliadosDoClienteAutenticado();
             return ResponseEntity.ok(pedidosDTO);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -80,13 +80,5 @@ public class PedidoController {
             return ResponseEntity.status(403).body(false);
         }
     }
-    @GetMapping("/naoavaliados")
-    public ResponseEntity<List<Pedido>> listarPedidosNaoAvaliadosDoClienteAutenticado() {
-        try {
-            List<Pedido> pedidosNaoAvaliados = pedidoService.listarPedidosNaoAvaliadosDoClienteAutenticado();
-            return ResponseEntity.ok(pedidosNaoAvaliados);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(403).body(null);
-        }
-    }
+
 }

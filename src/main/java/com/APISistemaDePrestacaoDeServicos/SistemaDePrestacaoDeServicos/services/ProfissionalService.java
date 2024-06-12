@@ -162,6 +162,9 @@ public class ProfissionalService {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
+    public List<Profissional> buscarProfissionaisPorNomeOuProfissao(String termo) {
+        return profissionalRepository.findByNomeOuProfissao(termo);
+    }
 
     public Profissional getAuthenticatedProfissional() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
